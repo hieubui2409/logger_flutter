@@ -3,6 +3,7 @@ part of logger_flutter;
 ListQueue<OutputEvent> _outputEventBuffer = ListQueue();
 int _bufferSize = 20;
 bool _initialized = false;
+bool _open = false;
 
 class LogConsole extends StatefulWidget {
   final bool dark;
@@ -26,16 +27,16 @@ class LogConsole extends StatefulWidget {
     ));
   }
 
-  static String defaultRouteName = 'logger-console';
-
   static void open(BuildContext context, {bool dark = false, bool showCloseButton = false}) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        settings: RouteSettings(name: defaultRouteName),
-        builder: (context) => LogConsole(dark: dark, showCloseButton: showCloseButton),
-      ),
-    );
+    if (!_open) {
+      _open = !_open;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => LogConsole(dark: dark, showCloseButton: showCloseButton),
+        ),
+      );
+    }
   }
 
   @override
