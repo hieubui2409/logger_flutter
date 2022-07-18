@@ -124,24 +124,24 @@ class _LogConsoleState extends State<LogConsole> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: widget.dark
-          ? ThemeData(
-              brightness: Brightness.dark,
-              colorScheme: ColorScheme.fromSwatch().copyWith(secondary: Colors.blueGrey, brightness: Brightness.dark),
-            )
-          : ThemeData(
-              brightness: Brightness.light,
-              colorScheme: ColorScheme.fromSwatch().copyWith(secondary: Colors.lightBlueAccent),
-            ),
-      home: WillPopScope(
-        onWillPop: () {
-          _open = false;
-          Navigator.pop(context);
-          return Future(() => false);
-        },
-        child: Scaffold(
+    return WillPopScope(
+      onWillPop: () {
+        _open = false;
+        Navigator.pop(context);
+        return Future(() => false);
+      },
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: widget.dark
+            ? ThemeData(
+                brightness: Brightness.dark,
+                colorScheme: ColorScheme.fromSwatch().copyWith(secondary: Colors.blueGrey, brightness: Brightness.dark),
+              )
+            : ThemeData(
+                brightness: Brightness.light,
+                colorScheme: ColorScheme.fromSwatch().copyWith(secondary: Colors.lightBlueAccent),
+              ),
+        home: Scaffold(
           body: SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -331,7 +331,6 @@ class _LogConsoleState extends State<LogConsole> {
   @override
   void dispose() {
     Logger.removeOutputListener(_callback);
-    _open = false;
     super.dispose();
   }
 }
