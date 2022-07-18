@@ -7,9 +7,9 @@ bool _initialized = false;
 class LogConsole extends StatefulWidget {
   final bool dark;
   final bool showCloseButton;
+  final ThemeData? themeData;
 
-  LogConsole({this.dark = false, this.showCloseButton = false})
-      : assert(_initialized, "Please call LogConsole.init() first.");
+  LogConsole({this.dark = false, this.showCloseButton = false, this.themeData}) : assert(_initialized, "Please call LogConsole.init() first.");
 
   static void init({int bufferSize = 20}) {
     if (_initialized) return;
@@ -27,17 +27,17 @@ class LogConsole extends StatefulWidget {
     ));
   }
 
-  static void open(BuildContext context) {
+  static void open(BuildContext context, {bool dark = false, bool showCloseButton = false, ThemeData? themeData}) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => LogConsole(),
+        builder: (context) => LogConsole(dark: dark, showCloseButton: showCloseButton, themeData: themeData),
       ),
     );
   }
 
   @override
-  _LogConsoleState createState() => _LogConsoleState();
+  State<LogConsole> createState() => _LogConsoleState();
 }
 
 class RenderedEvent {
@@ -125,14 +125,16 @@ class _LogConsoleState extends State<LogConsole> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: widget.dark
-          ? ThemeData(
-              brightness: Brightness.dark,
-              colorScheme: ColorScheme.fromSwatch().copyWith(secondary: Colors.blueGrey),
-            )
-          : ThemeData(
-              brightness: Brightness.light,
-              colorScheme: ColorScheme.fromSwatch().copyWith(secondary: Colors.lightBlueAccent),
-            ),
+          ? widget.themeData ??
+              ThemeData(
+                brightness: Brightness.dark,
+                colorScheme: ColorScheme.fromSwatch().copyWith(secondary: Colors.blueGrey, brightness: Brightness.dark),
+              )
+          : widget.themeData ??
+              ThemeData(
+                brightness: Brightness.light,
+                colorScheme: ColorScheme.fromSwatch().copyWith(secondary: Colors.lightBlueAccent),
+              ),
       home: Scaffold(
         body: SafeArea(
           child: Column(
