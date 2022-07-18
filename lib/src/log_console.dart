@@ -136,32 +136,39 @@ class _LogConsoleState extends State<LogConsole> {
               brightness: Brightness.light,
               colorScheme: ColorScheme.fromSwatch().copyWith(secondary: Colors.lightBlueAccent),
             ),
-      home: Scaffold(
-        body: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              _buildTopBar(),
-              Expanded(
-                child: _buildLogContent(),
-              ),
-              _buildBottomBar(),
-            ],
+      home: WillPopScope(
+        onWillPop: () {
+          _open = false;
+          Navigator.pop(context);
+          return Future(() => false);
+        },
+        child: Scaffold(
+          body: SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                _buildTopBar(),
+                Expanded(
+                  child: _buildLogContent(),
+                ),
+                _buildBottomBar(),
+              ],
+            ),
           ),
-        ),
-        floatingActionButton: AnimatedOpacity(
-          opacity: _followBottom ? 0 : 1,
-          duration: Duration(milliseconds: 150),
-          child: Padding(
-            padding: EdgeInsets.only(bottom: 60),
-            child: FloatingActionButton(
-              mini: true,
-              clipBehavior: Clip.antiAlias,
-              child: Icon(
-                Icons.arrow_downward,
-                color: widget.dark ? Colors.white : Colors.lightBlue[900],
+          floatingActionButton: AnimatedOpacity(
+            opacity: _followBottom ? 0 : 1,
+            duration: Duration(milliseconds: 150),
+            child: Padding(
+              padding: EdgeInsets.only(bottom: 60),
+              child: FloatingActionButton(
+                mini: true,
+                clipBehavior: Clip.antiAlias,
+                child: Icon(
+                  Icons.arrow_downward,
+                  color: widget.dark ? Colors.white : Colors.lightBlue[900],
+                ),
+                onPressed: _scrollToBottom,
               ),
-              onPressed: _scrollToBottom,
             ),
           ),
         ),
@@ -228,6 +235,7 @@ class _LogConsoleState extends State<LogConsole> {
             IconButton(
               icon: Icon(Icons.close),
               onPressed: () {
+                _open = false;
                 Navigator.pop(context);
               },
             ),
