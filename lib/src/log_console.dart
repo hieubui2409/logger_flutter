@@ -71,7 +71,6 @@ class _LogConsoleState extends State<LogConsole> {
   @override
   void initState() {
     super.initState();
-
     _callback = LogOutputListener((e) {
       if (_renderedBuffer.length == _bufferSize) {
         _renderedBuffer.removeFirst();
@@ -332,6 +331,7 @@ class _LogConsoleState extends State<LogConsole> {
   @override
   void dispose() {
     Logger.removeOutputListener(_callback);
+    _open = false;
     super.dispose();
   }
 }
