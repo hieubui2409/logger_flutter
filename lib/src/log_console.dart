@@ -190,7 +190,7 @@ class _LogConsoleState extends State<LogConsole> {
               return SelectableText.rich(
                 logEntry.span,
                 key: Key(logEntry.id.toString()),
-                style: TextStyle(fontSize: _logFontSize),
+                style: GoogleFonts.robotoMono().copyWith(fontSize: _logFontSize),
               );
             },
             itemCount: _filteredBuffer.length,
