@@ -1,15 +1,17 @@
-part of logger_flutter;
+part of logger_flutter_fork;
 
 ListQueue<OutputEvent> _outputEventBuffer = ListQueue();
 int _bufferSize = 20;
 bool _initialized = false;
-bool _open = false;
 
 class LogConsole extends StatefulWidget {
   final bool dark;
   final bool showCloseButton;
+  final bool showClearButton;
+  final void Function(String content)? onExport;
 
-  LogConsole({this.dark = false, this.showCloseButton = false}) : assert(_initialized, "Please call LogConsole.init() first.");
+  LogConsole({this.dark = false, this.showCloseButton = false, this.showClearButton = true, this.onExport})
+      : assert(_initialized, "Please call LogConsole.init() first.");
 
   static void init({int bufferSize = 20}) {
     if (_initialized) return;
@@ -27,20 +29,22 @@ class LogConsole extends StatefulWidget {
     ));
   }
 
-  static void open(BuildContext context, {bool dark = false, bool showCloseButton = false}) {
-    if (!_open) {
-      _open = true;
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => LogConsole(dark: dark, showCloseButton: showCloseButton),
-        ),
-      );
-    }
+  static void open(BuildContext context,
+      {bool dark = false, bool showCloseButton = false, bool showClearButton = true, void Function(String)? onExport}) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) => LogConsole(
+                dark: dark,
+                showClearButton: showClearButton,
+                showCloseButton: showCloseButton,
+                onExport: onExport,
+              )),
+    );
   }
 
   @override
-  State<LogConsole> createState() => _LogConsoleState();
+  _LogConsoleState createState() => _LogConsoleState();
 }
 
 class RenderedEvent {
@@ -71,6 +75,7 @@ class _LogConsoleState extends State<LogConsole> {
   @override
   void initState() {
     super.initState();
+
     _callback = LogOutputListener((e) {
       if (_renderedBuffer.length == _bufferSize) {
         _renderedBuffer.removeFirst();
@@ -129,45 +134,38 @@ class _LogConsoleState extends State<LogConsole> {
       theme: widget.dark
           ? ThemeData(
               brightness: Brightness.dark,
-              colorScheme: ColorScheme.fromSwatch().copyWith(secondary: Colors.blueGrey, brightness: Brightness.dark),
+              colorScheme: ColorScheme.fromSwatch().copyWith(secondary: Colors.blueGrey),
             )
           : ThemeData(
               brightness: Brightness.light,
               colorScheme: ColorScheme.fromSwatch().copyWith(secondary: Colors.lightBlueAccent),
             ),
-      home: WillPopScope(
-        onWillPop: () {
-          _open = false;
-          Navigator.pop(context);
-          return Future(() => false);
-        },
-        child: Scaffold(
-          body: SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                _buildTopBar(),
-                Expanded(
-                  child: _buildLogContent(),
-                ),
-                _buildBottomBar(),
-              ],
-            ),
-          ),
-          floatingActionButton: AnimatedOpacity(
-            opacity: _followBottom ? 0 : 1,
-            duration: Duration(milliseconds: 150),
-            child: Padding(
-              padding: EdgeInsets.only(bottom: 60),
-              child: FloatingActionButton(
-                mini: true,
-                clipBehavior: Clip.antiAlias,
-                child: Icon(
-                  Icons.arrow_downward,
-                  color: widget.dark ? Colors.white : Colors.lightBlue[900],
-                ),
-                onPressed: _scrollToBottom,
+      home: Scaffold(
+        body: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              _buildTopBar(),
+              Expanded(
+                child: _buildLogContent(),
               ),
+              _buildBottomBar(),
+            ],
+          ),
+        ),
+        floatingActionButton: AnimatedOpacity(
+          opacity: _followBottom ? 0 : 1,
+          duration: Duration(milliseconds: 150),
+          child: Padding(
+            padding: EdgeInsets.only(bottom: 60),
+            child: FloatingActionButton(
+              mini: true,
+              clipBehavior: Clip.antiAlias,
+              child: Icon(
+                Icons.arrow_downward,
+                color: widget.dark ? Colors.white : Colors.lightBlue[900],
+              ),
+              onPressed: _scrollToBottom,
             ),
           ),
         ),
@@ -187,10 +185,10 @@ class _LogConsoleState extends State<LogConsole> {
             controller: _scrollController,
             itemBuilder: (context, index) {
               var logEntry = _filteredBuffer[index];
-              return SelectableText.rich(
+              return Text.rich(
                 logEntry.span,
                 key: Key(logEntry.id.toString()),
-                style: GoogleFonts.robotoMono().copyWith(fontSize: _logFontSize),
+                style: TextStyle(fontSize: _logFontSize),
               );
             },
             itemCount: _filteredBuffer.length,
@@ -214,6 +212,30 @@ class _LogConsoleState extends State<LogConsole> {
             ),
           ),
           Spacer(),
+          if (widget.showClearButton)
+            IconButton(
+              icon: Icon(
+                Icons.delete,
+                color: Color.fromARGB(255, 254, 20, 3),
+              ),
+              onPressed: () {
+                _renderedBuffer.clear();
+                _outputEventBuffer.clear();
+                _refreshFilter();
+                setState(() {});
+              },
+            ),
+          IconButton(
+            icon: Icon(Icons.import_export),
+            onPressed: () {
+              var content = _renderedBuffer.map((e) => e.lowerCaseText).join();
+              if (widget.onExport != null) {
+                widget.onExport?.call(content);
+              } else {
+                Share.share(content);
+              }
+            },
+          ),
           IconButton(
             icon: Icon(Icons.add),
             onPressed: () {
@@ -234,7 +256,6 @@ class _LogConsoleState extends State<LogConsole> {
             IconButton(
               icon: Icon(Icons.close),
               onPressed: () {
-                _open = false;
                 Navigator.pop(context);
               },
             ),
@@ -330,7 +351,6 @@ class _LogConsoleState extends State<LogConsole> {
 
   @override
   void dispose() {
-    _open = false;
     Logger.removeOutputListener(_callback);
     super.dispose();
   }
