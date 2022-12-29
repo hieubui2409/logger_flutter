@@ -29,8 +29,7 @@ class LogConsole extends StatefulWidget {
     ));
   }
 
-  static void open(BuildContext context,
-      {bool dark = false, bool showCloseButton = false, bool showClearButton = true, void Function(String)? onExport}) {
+  static void open(BuildContext context, {bool dark = false, bool showCloseButton = false, bool showClearButton = true, void Function(String)? onExport}) {
     Navigator.push(
       context,
       MaterialPageRoute(

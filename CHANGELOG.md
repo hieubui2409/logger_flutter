@@ -1,4 +1,7 @@
-# 1.2.0
+## 1.3.0
+No change
+
+## 1.2.0
 
 * Null safe and working with logger_fork
 
